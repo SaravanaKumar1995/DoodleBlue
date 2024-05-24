@@ -1,6 +1,6 @@
 namespace API.Services
 {
-    public class LuhnValidator
+    public class LuhnValidator : ILuhnValidator
     {
         public bool IsValid(string creditCardNumber)
         {

@@ -7,12 +7,13 @@ namespace API.Controllers;
 [Route("[controller]")]
 public class CreditCardController : ControllerBase
  {
-        private readonly LuhnValidator _luhnValidator;
+        private readonly ILuhnValidator _luhnValidator;
 
-        public CreditCardController()
+        public CreditCardController(ILuhnValidator luhnValidator)
         {
-            _luhnValidator = new LuhnValidator();
+            _luhnValidator = luhnValidator;
         }
+
 
         /// <summary>
         /// Validates a credit card number using the Luhn algorithm.
@@ -22,13 +23,25 @@ public class CreditCardController : ControllerBase
         [HttpPost("validate")]
         public ActionResult<bool> Validate([FromBody] string creditCardNumber)
         {
-            if (string.IsNullOrWhiteSpace(creditCardNumber))
+           try
             {
-                return BadRequest("Credit card number is required.");
-            }
+                if (string.IsNullOrWhiteSpace(creditCardNumber))
+                {
+                    return BadRequest("Credit card number is required.");
+                }
 
-            bool isValid = _luhnValidator.IsValid(creditCardNumber);
-            return Ok(isValid);
+                bool isValid = _luhnValidator.IsValid(creditCardNumber);
+                return Ok(isValid);
+            }
+            catch (FormatException ex)
+            {
+                return BadRequest($"Invalid input format: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (consider using a logging framework)
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     
 }
